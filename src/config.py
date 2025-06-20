@@ -1,7 +1,10 @@
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
-from pydantic_settings import BaseSettings, SettingsConfigDict
+
 import httpx
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 from src.log import logging
 
 logger = logging.getLogger(__name__)
@@ -27,27 +30,31 @@ class Config(BaseSettings):
         ]:
             # Check if at least one source exists
             if not any([path.exists(), data, url]):
-                raise FileNotFoundError(f"Neither file, URL, nor data provided for {path.name}")
-            
+                raise FileNotFoundError(
+                    f"Neither file, URL, nor data provided for {path.name}"
+                )
+
             # Priority 1: If file exists, use that
             if path.exists():
                 logger.info(f"Using existing {path.name} at {path}")
                 continue
-            
+
             # Priority 2: If data exists, write from data
             if data:
                 logger.info(f"Writing {path.name} from data")
                 self._write_file(path, data)
                 continue
-            
+
             # Priority 3: If URL exists, download from URL
             if url:
                 logger.info(f"Downloading {path.name} from {url}")
-                response = httpx.get(url)
+                response = httpx.get(
+                    url, params={"_t": str(int(datetime.now(timezone.utc).timestamp()))}
+                )
                 response.raise_for_status()
-                
+
                 self._write_file(path, response.text)
-                
+
                 logger.info(f"Downloaded {path.name} to {path}")
                 continue
 
@@ -55,5 +62,6 @@ class Config(BaseSettings):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.touch()
         path.write_text(data)
+
 
 config = Config()

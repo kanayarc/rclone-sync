@@ -1,7 +1,8 @@
-from pathlib import Path
-from src.config import config
 import logging
 import subprocess
+from pathlib import Path
+
+from src.config import config
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +16,10 @@ PROCESS_CODES = {
     6: "UNKNOWN",
 }
 
+
 def load_commands(path: Path) -> list[str]:
     return path.read_text().splitlines()
+
 
 def main():
     logger.info("Starting rclone-sync")
@@ -24,10 +27,11 @@ def main():
 
     for command in commands:
         logger.info(f"Running command: {command}")
-        result = subprocess.run(command, shell=True, check=True)
+        result = subprocess.run(command, shell=True)
         logger.info(f"Command result: {PROCESS_CODES[result.returncode]}")
 
     logger.info("All commands completed")
+
 
 if __name__ == "__main__":
     main()
