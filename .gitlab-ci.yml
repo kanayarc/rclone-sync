@@ -1,0 +1,16 @@
+build:
+  image: docker:latest
+  stage: build
+  services:
+    - docker:dind
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    LATEST_TAG: $CI_REGISTRY_IMAGE:latest
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+    - docker buildx create --use
+    - docker buildx build --platform linux/amd64,linux/arm64 -t $IMAGE_TAG --push .
+    - |
+      if [ "$CI_COMMIT_REF_SLUG" = "main" ]; then
+        docker buildx build --platform linux/amd64,linux/arm64 -t $LATEST_TAG --push .
+      fi

@@ -1,0 +1,7 @@
+services:
+  rclone-sync:
+    image: rclone-sync
+    container_name: rclone-sync
+    build: .
+    env_file:
+      - .env

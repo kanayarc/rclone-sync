@@ -1,0 +1,8 @@
+# Python
+__pycache__/
+.env
+.venv/
+
+# Rclone
+commands.sh
+rclone.conf
