@@ -25,21 +25,35 @@ class Config(BaseSettings):
             (self.rclone_config_url, self.rclone_config, self.rclone_config_data),
             (self.rclone_commands_url, self.rclone_commands, self.rclone_commands_data),
         ]:
+            # Check if at least one source exists
+            if not any([path.exists(), data, url]):
+                raise FileNotFoundError(f"Neither file, URL, nor data provided for {path.name}")
+            
+            # Priority 1: If file exists, use that
+            if path.exists():
+                logger.info(f"Using existing {path.name} at {path}")
+                continue
+            
+            # Priority 2: If data exists, write from data
             if data:
                 logger.info(f"Writing {path.name} from data")
-                path.write_text(data)
-            elif url:
+                self._write_file(path, data)
+                continue
+            
+            # Priority 3: If URL exists, download from URL
+            if url:
                 logger.info(f"Downloading {path.name} from {url}")
-
                 response = httpx.get(url)
                 response.raise_for_status()
-
-                data = response.text
-                path.write_text(data)
-
+                
+                self._write_file(path, response.text)
+                
                 logger.info(f"Downloaded {path.name} to {path}")
-            elif not path.exists():
-                raise FileNotFoundError(f"{path.name} file not found at {path}")
+                continue
 
+    def _write_file(self, path: Path, data: str) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.touch()
+        path.write_text(data)
 
 config = Config()
