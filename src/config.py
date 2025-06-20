@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Any, Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import httpx
-import logging
+from src.log import logging
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +26,7 @@ class Config(BaseSettings):
             (self.rclone_commands_url, self.rclone_commands, self.rclone_commands_data),
         ]:
             if data:
+                logger.info(f"Writing {path.name} from data")
                 path.write_text(data)
             elif url:
                 logger.info(f"Downloading {path.name} from {url}")
